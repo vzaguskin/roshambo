@@ -1,6 +1,17 @@
 from random import randint
 
+from random import random
+from bisect import bisect, bisect_left
 
+def weighted_choice(values, weights):
+    total = 0
+    cum_weights = []
+    for w in weights:
+        total += w
+        cum_weights.append(total)
+    x = random() * total
+    i = bisect_left(cum_weights, x)
+    return values[i]
 
 class treePredictor():
     def __init__(self):
@@ -29,7 +40,7 @@ class treePredictor():
     def gameRes(self, c1, c2):
         i1 = self.choices.index(c1)
         i2 = self.choices.index(c2)
-        #print i1, i2
+        
         return self.gameMat[i1][i2]
     def getRoll(self, c1, c2):
         i1 = self.choices.index(c1)
@@ -41,7 +52,7 @@ class treePredictor():
         return self.rollMat[i1][i2]
     
     def rollInd(self,i1, inc):
-        #i1 = self.choices.index(c)
+        
         row = self.rollMat[i1]
         ind = row.index(inc)
         return ind
@@ -52,16 +63,16 @@ class treePredictor():
             self.prevmove = ret
             return ret
         arr=self.dataarr[self.prevres]
-        #print arr, self.prevres
-        predictedroll = arr.index(max(arr))
+        
+        predictedroll = weighted_choice([0,1,2], arr)
         predictedchoice = self.rollInd(self.prevchoice, predictedroll)
-        #print "predicted: ", predictedchoice, self.choices[predictedchoice]
+        
         choice = self.beatMat[predictedchoice]
         if self.playrand:
             self.playrand=False
-            #print "random choice"
+            
             choice = randint(0,2)
-        #print "made choice: ", choice, self.choices[choice]
+
         self.prevmove = self.choices[choice]
         return self.choices[choice]
     
@@ -71,10 +82,11 @@ class treePredictor():
         
         if not (self.prevchoice is None or self.prevres is None):
             roll = self.getRollbyInd(self.prevchoice, i1)
-            #print "res, roll", self.prevres, roll
-            #self.dataarr[self.prevres]=[0,0,0]
-            self.dataarr[self.prevres][roll]+=1*self.mult
-            self.mult+=float(randint(0,3))/10
+            for i in range(3):
+                for j in range(3):
+                    self.dataarr[i][j]*=0.9
+            self.dataarr[self.prevres][roll]+=1
+            
             
         self.prevchoice = i1
         self.prevres = self.gameRes(c,self.prevmove)
@@ -84,7 +96,6 @@ class treePredictor():
 
 
 if input == '':
-    #output='R'
     tp = treePredictor()
     output = tp.predict()
     
